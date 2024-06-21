@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat app</title>
+    <style>
+        html{
+            background-color: cadetblue;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px;
+            margin-bottom: 10px;
+            background-color: #f2f2f2;
+            border-radius: 4px;
+        }
+        input {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<h1>Bienvenue !</h1>
+<ul id="messages"></ul>
+<form id="form" action="">
+    <input id="inputUsername" autocomplete="off" placeholder="Enter your username"/>
+    <input id="inputMessage" autocomplete="off" placeholder="Enter your message" disabled />
+    <button>Send</button>
+</form>
+<p id="errorMessage" style="color: red;"></p>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io();
+
+    var form = document.getElementById('form');
+    var inputUser = document.getElementById('inputUsername');
+    var inputMessage = document.getElementById('inputMessage');
+    var errorMessage = document.getElementById('errorMessage');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!socket.username && inputUser.value) {
+            socket.emit('set username', inputUser.value, function(success) {
+                if (success) {
+                    socket.username = inputUser.value;
+                    inputUser.disabled = true;
+                    inputMessage.disabled = false;
+                    errorMessage.textContent = '';
+                } else {
+                    errorMessage.textContent = 'Username already taken. Please choose another one.';
+                }
+            });
+        } else if (socket.username && inputMessage.value) {
+            socket.emit('chat message', inputMessage.value);
+            inputMessage.value = '';
+        }
+    });
+
+    socket.on('chat message', function(msg) {
+        var item = document.createElement('li');
+        item.textContent = msg;
+        document.getElementById('messages').appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    socket.on('user connected', function(user) {
+        var item = document.createElement('li');
+        item.textContent = user + ' has joined the chat.';
+        document.getElementById('messages').appendChild(item);
+    });
+
+    socket.on('user disconnected', function(user) {
+        var item = document.createElement('li');
+        item.textContent = user + ' has left the chat.';
+        document.getElementById('messages').appendChild(item);
+    });
+</script>
+</body>
+</html>
