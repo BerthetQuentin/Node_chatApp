@@ -27,7 +27,9 @@ Le serveur sera accessible à l'adresse `http://localhost:3000`
 ```bash
 node_chatapp/
 ├── public/
-│   └── index.html          # Fichier HTML principal pour l'interface utilisateur
+│   │── index.html # Fichier HTML principal pour l'interface utilisateur
+│   │── css.css # Fichier CSS principal pour le style de l'application
+│   └── style.css # FIchier JS principal pour la logique frontend
 ├── src/
 │   └── server.js           # Fichier serveur principal de l'application
 ├── .gitignore              # Fichier pour exclure les fichiers et répertoires spécifiques de Git
