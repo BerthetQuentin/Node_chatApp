@@ -14,7 +14,18 @@ app.use(express.static(path.join(__dirname, '../public')));
 let users = [];
 
 io.on("connection", (socket) => {
-    console.log("a user connected");
+    let time = new Date();
+    let formattedDate = time.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false
+    })
+
+    console.log(formattedDate + " : a user connected");
 
     socket.on("set username", (user, callback) => {
         if (users.includes(user)) {
@@ -23,7 +34,16 @@ io.on("connection", (socket) => {
             users.push(user);
             socket.username = user;
             callback(true); // Username accepted
-            console.log("Username set to: " + user);
+            let formattedDate = time.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: false
+            })
+            console.log(formattedDate + " : Username set to: " + user);
             io.emit("user connected", user);
         }
     });
