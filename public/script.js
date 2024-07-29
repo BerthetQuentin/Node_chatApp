@@ -42,3 +42,13 @@ socket.on('user disconnected', function(user) {
     item.textContent = user + ' has left the chat.';
     document.getElementById('messages').appendChild(item);
 });
+
+// Écouter l'événement 'chat history' pour récupérer l'historique des messages
+socket.on('chat history', function(history) {
+    history.forEach(function(msg) {
+        let item = document.createElement('li');
+        item.textContent = msg;
+        document.getElementById('messages').appendChild(item);
+    });
+    window.scrollTo(0, document.body.scrollHeight);
+});

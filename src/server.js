@@ -12,6 +12,7 @@ const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, '../public')));
 
 let users = [];
+let messageHistory = []; // Tableau pour stocker l'historique des messages
 
 io.on("connection", (socket) => {
     let time = new Date();
@@ -23,18 +24,21 @@ io.on("connection", (socket) => {
         minute: 'numeric',
         second: 'numeric',
         hour12: false
-    })
+    });
 
     console.log(formattedDate + " : a user connected");
 
+    // Envoyer l'historique des messages au nouveau client
+    socket.emit("chat history", messageHistory);
+
     socket.on("set username", (user, callback) => {
         if (users.includes(user)) {
-            callback(false); // Username already taken
+            callback(false); // Nom d'utilisateur déjà pris
         } else {
             users.push(user);
             socket.username = user;
-            callback(true); // Username accepted
-            let formattedDate = time.toLocaleString('fr-FR', {
+            callback(true); // Nom d'utilisateur accepté
+            let formattedDate = new Date().toLocaleString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -42,16 +46,35 @@ io.on("connection", (socket) => {
                 minute: 'numeric',
                 second: 'numeric',
                 hour12: false
-            })
-            console.log(formattedDate + " : Username set to: " + user);
+            });
+            console.log(formattedDate + " : Username set to : " + user);
+
             io.emit("user connected", user);
+
+            // Ajouter le message à l'historique
+            messageHistory.push(user + " has joined the chat");
+
+            // Limiter l'historique aux 100 derniers messages
+            if (messageHistory.length > 100) {
+                messageHistory.shift();
+            }
         }
     });
 
     socket.on("chat message", (msg) => {
         if (socket.username) {
-            console.log("message: " + socket.username + ": " + msg);
-            io.emit("chat message", socket.username + ": " + msg);
+            let fullMessage = `${socket.username}: ${msg}`;
+            console.log("message: " + fullMessage);
+
+            // Ajouter le message à l'historique
+            messageHistory.push(fullMessage);
+
+            // Limiter l'historique aux 100 derniers messages
+            if (messageHistory.length > 100) {
+                messageHistory.shift();
+            }
+
+            io.emit("chat message", fullMessage);
         }
     });
 
@@ -59,11 +82,20 @@ io.on("connection", (socket) => {
         if (socket.username) {
             users = users.filter(user => user !== socket.username);
             console.log("user disconnected: " + socket.username);
+
+            // Ajouter le message à l'historique
+            messageHistory.push(socket.username + " has left the chat.")
+
+            // Limiter l'historique aux 100 derniers messages
+            if (messageHistory.length > 100) {
+                messageHistory.shift();
+            }
+
             io.emit("user disconnected", socket.username);
         }
     });
 });
 
 server.listen(port, () => {
-    console.log("listening on http://localhost:"+port)
+    console.log("listening on http://localhost:" + port);
 });
